@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Javascript Web Output #2</title>
+
+<style>
+body{
+    font-family: Arial;
+}
+
+
+label{
+    display: inline-block;
+    width: 120px;
+    text-align: left;
+    margin-right: 5px;
+}
+
+input{
+    width: 200px;
+}
+
+table{
+    border-collapse: collapse;
+    margin-top:10px;
+}
+
+table, th, td{
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+    padding:5px;
+}
+
+th, td{
+    border-right: 1px solid black;
+}
+
+th:last-child, td:last-child{
+    border-right: none;
+}
+
+button{
+    margin:2px;
+}
+</style>
+
+</head>
+<body>
+
+<h2>Javascript Web Output #2</h2>
+
+<label for="firstName">First Name:</label>
+<input type="text" id="firstName"><br><br>
+
+<label for="middleName">Middle Name:</label>
+<input type="text" id="middleName"><br><br>
+
+<label for="lastName">Last Name:</label>
+<input type="text" id="lastName"><br><br>
+
+<label for="age">Age:</label>
+<input type="number" id="age"><br><br>
+
+<button onclick="insertRecord()">Insert</button>
+<button onclick="clearFields()">Clear</button>
+
+<fieldset>
+<legend>Records</legend>
+
+<table>
+<thead>
+<tr>
+<th>First Name</th>
+<th>Middle Name</th>
+<th>Last Name</th>
+<th>Age</th>
+<th>Action</th>
+</tr>
+</thead>
+
+<tbody id="recordsTable"></tbody>
+</table>
+</fieldset>
+
+<br>
+
+<button onclick="clearRecords()">Clear Records</button>
+
+Sort by:
+<select id="sortField">
+<option value="firstName">First Name</option>
+<option value="lastName">Last Name</option>
+</select>
+
+<select id="sortOrder">
+<option value="az">A-Z</option>
+<option value="za">Z-A</option>
+</select>
+
+<button onclick="sortRecords()">Sort</button>
+
+<button onclick="saveToLocalStorage()">Save to Local Storage</button>
+
+<script>
+
+let records = [];
+
+window.onload = function(){
+
+    const saved = localStorage.getItem("records");
+
+    if(saved){
+        records = JSON.parse(saved);
+        displayRecords();
+    }
+
+}
+
+function insertRecord(){
+
+    const first = document.getElementById("firstName").value;
+    const middle = document.getElementById("middleName").value;
+    const last = document.getElementById("lastName").value;
+    const age = document.getElementById("age").value;
+
+    if(first === "" || last === "" || age === ""){
+        alert("Please fill required fields");
+        return;
+    }
+
+    const record = {
+        firstName:first,
+        middleName:middle,
+        lastName:last,
+        age:age
+    };
+
+    records.push(record);
+
+    displayRecords();
+}
+
+function displayRecords(){
+
+    const table = document.getElementById("recordsTable");
+    table.innerHTML = "";
+
+    records.forEach((rec,index)=>{
+
+        table.innerHTML += `
+        <tr>
+        <td>${rec.firstName}</td>
+        <td>${rec.middleName}</td>
+        <td>${rec.lastName}</td>
+        <td>${rec.age}</td>
+        <td>
+        <button onclick="editRecord(${index})">Edit</button>
+        <button onclick="deleteRecord(${index})">Delete</button>
+        </td>
+        </tr>
+        `;
+
+    });
+
+}
+
+function deleteRecord(index){
+
+    records.splice(index,1);
+
+    displayRecords();
+}
+
+function editRecord(index){
+
+    const rec = records[index];
+
+    document.getElementById("firstName").value = rec.firstName;
+    document.getElementById("middleName").value = rec.middleName;
+    document.getElementById("lastName").value = rec.lastName;
+    document.getElementById("age").value = rec.age;
+
+    // remove the original entry so it can be replaced when inserted again
+    records.splice(index,1);
+
+    displayRecords();
+
+    // notify the user that editing is in progress
+    alert("Record loaded for editing - make changes then click Insert");
+}
+
+function clearFields(){
+
+    document.getElementById("firstName").value="";
+    document.getElementById("middleName").value="";
+    document.getElementById("lastName").value="";
+    document.getElementById("age").value="";
+}
+
+function clearRecords(){
+
+    records = [];
+    displayRecords();
+}
+
+function sortRecords(){
+
+    const field = document.getElementById("sortField").value;
+    const order = document.getElementById("sortOrder").value;
+
+    records.sort(function(a,b){
+        let valA = a[field];
+        let valB = b[field];
+
+        if(field === "age"){
+            // numeric comparison for age
+            valA = Number(valA);
+            valB = Number(valB);
+        }else{
+            // string comparison should ignore case
+            valA = valA.toString().toLowerCase();
+            valB = valB.toString().toLowerCase();
+        }
+
+        if(order === "az"){
+            if(valA < valB) return -1;
+            if(valA > valB) return 1;
+            return 0;
+        }else{ // za
+            if(valA < valB) return 1;
+            if(valA > valB) return -1;
+            return 0;
+        }
+    });
+
+    displayRecords();
+}
+
+function saveToLocalStorage(){
+
+    localStorage.setItem("records", JSON.stringify(records));
+
+    alert("Records saved to Local Storage");
+
+}
+
+</script>
+
+</body>
+</html>
